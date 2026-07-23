@@ -1,4 +1,38 @@
-import { sql } from "@vercel/postgres";
+import { neon } from "@neondatabase/serverless";
+
+// La integración de Neon en Vercel puede nombrar la variable de conexión
+// distinto según cómo se haya conectado (POSTGRES_URL, DATABASE_URL, o con
+// el prefijo que se haya elegido al instalarla). Probamos las variantes más
+// comunes para no depender de un nombre exacto.
+function resolveConnectionString() {
+  const candidates = [
+    process.env.POSTGRES_URL,
+    process.env.DATABASE_URL,
+    process.env.DATABASE_URL_UNPOOLED,
+    process.env.STORAGE_URL,
+    process.env.STORAGE_DATABASE_URL,
+    process.env.STORAGE_POSTGRES_URL,
+    process.env.POSTGRES_DATABASE_URL,
+  ];
+  const found = candidates.find((v) => !!v);
+  if (!found) {
+    throw new Error(
+      "No encontré la variable de conexión a la base (probé POSTGRES_URL, DATABASE_URL y variantes). Revisá Settings > Environment Variables en Vercel."
+    );
+  }
+  return found;
+}
+
+let _sql: any = null;
+function sql<T = any>(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): Promise<{ rows: T[] }> {
+  if (!_sql) {
+    _sql = neon(resolveConnectionString(), { fullResults: true });
+  }
+  return _sql(strings, ...values);
+}
 
 export type Product = {
   id: number;
