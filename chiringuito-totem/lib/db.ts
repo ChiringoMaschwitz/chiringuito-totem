@@ -147,4 +147,12 @@ export async function moveProduct(id: number, direction: "up" | "down") {
   if (swapIdx < 0 || swapIdx >= all.length) return;
   const a = all[idx];
   const b = all[swapIdx];
-  await sql
+  await sql`UPDATE products SET sort_order = ${b.sort_order} WHERE id = ${a.id};`;
+  await sql`UPDATE products SET sort_order = ${a.sort_order} WHERE id = ${b.id};`;
+}
+
+export async function countProducts() {
+  await ensureSchema();
+  const { rows } = await sql`SELECT COUNT(*)::int AS count FROM products;`;
+  return rows[0]?.count ?? 0;
+}
