@@ -183,7 +183,7 @@ export default function ProductManager() {
           </h1>
         </div>
         <div className="flex gap-3">
-          
+          <a
             href="/totem"
             target="_blank"
             rel="noreferrer"
