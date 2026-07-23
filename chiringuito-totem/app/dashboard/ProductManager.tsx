@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { resizeImageFile } from "@/lib/resizeImage";
 
 type Product = {
   id: number;
@@ -125,13 +126,18 @@ export default function ProductManager() {
     try {
       let photoUrl = form.photo_url;
       if (form.file) {
+        const resized = await resizeImageFile(form.file);
         const fd = new FormData();
-        fd.append("file", form.file);
+        const fileName = form.file.name.replace(/\.\w+$/, "") + ".jpg";
+        fd.append("file", resized, fileName);
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: fd,
         });
-        if (!uploadRes.ok) throw new Error("No se pudo subir la foto");
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.error ?? "No se pudo subir la foto");
+        }
         const uploadData = await uploadRes.json();
         photoUrl = uploadData.url;
       }
@@ -177,7 +183,7 @@ export default function ProductManager() {
           </h1>
         </div>
         <div className="flex gap-3">
-          <a
+          
             href="/totem"
             target="_blank"
             rel="noreferrer"
