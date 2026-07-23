@@ -28,7 +28,7 @@ function sql<T = any>(
   ...values: unknown[]
 ): Promise<{ rows: T[] }> {
   const client = neon(resolveConnectionString(), { fullResults: true });
-  return client(strings, ...values);
+  return client(strings, ...values) as unknown as Promise<{ rows: T[] }>;
 }
 
 export type Product = {
