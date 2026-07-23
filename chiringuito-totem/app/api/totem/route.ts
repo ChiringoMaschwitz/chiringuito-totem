@@ -1,18 +1,37 @@
+import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
-import { listVisibleProducts } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-// Endpoint público: lo consume la pantalla /totem. Solo expone lo necesario
-// para mostrar el slideshow (sin datos internos de administración).
 export async function GET() {
-  const products = await listVisibleProducts();
-  const slides = products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    price: p.price,
-    photo_url: p.photo_url,
-  }));
-  return NextResponse.json({ slides });
+  try {
+    const sql = neon(process.env.POSTGRES_URL!);
+
+    const rows = await sql`
+      SELECT id, name, description, price, photo_url, visible, sort_order
+      FROM products
+      WHERE visible = true
+      ORDER BY sort_order ASC, id ASC
+    `;
+
+    const slides = rows.map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      price: r.price,
+      photo_url: r.photo_url,
+    }));
+
+    return NextResponse.json(
+      { slides },
+      { headers: { "Cache-Control": "no-store" } }
+    );
+  } catch (e: any) {
+    console.error("totem query failed:", e?.message ?? e);
+    return NextResponse.json(
+      { slides: [], error: "query_failed" },
+      { status: 500, headers: { "Cache-Control": "no-store" } }
+    );
+  }
 }
