@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Chiringuito Lounge — Totem",
   description: "Pantalla y dashboard propio del totem de Chiringuito Lounge",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
