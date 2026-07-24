@@ -111,6 +111,11 @@ export default function TotemPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+    }
+  }, []);
   const slide = slides[index];
   const slideReady = slide ? !slide.photo_url || loadedIds.has(slide.id) : false;
 
